@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>같이 밥 먹을 친구 찾기</title>
+<style>
+:root {
+  --bg: #f6f7fb; --card: #fff; --ink: #25283a; --muted: #73788c;
+  --primary: #6b63d9; --primary-dark: #5149bd; --line: #e7e8f0;
+  --soft: #eeedff; --green: #e4f7ed; --red: #fff0f0; --shadow: 0 8px 28px rgba(36,38,70,.07);
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", "맑은 고딕", sans-serif; background: var(--bg); color: var(--ink); }
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+.layout { min-height: 100vh; display: grid; grid-template-columns: 245px 1fr; }
+.sidebar { background: #fff; border-right: 1px solid var(--line); padding: 28px 18px; }
+.brand { display:flex; align-items:center; gap:10px; font-size:19px; font-weight:800; margin: 0 8px 34px; }
+.brand-icon { display:grid; place-items:center; width:40px; height:40px; background:var(--soft); border-radius:14px; font-size:22px; }
+.nav { display:grid; gap:8px; }
+.nav button { border:0; background:transparent; text-align:left; padding:13px 14px; border-radius:12px; color:#686d80; font-weight:650; }
+.nav button.active, .nav button:hover { background:var(--soft); color:var(--primary-dark); }
+.side-note { margin:35px 6px 0; padding:16px; border-radius:15px; background:#f8f7ff; color:#666b80; font-size:12px; line-height:1.7; }
+main { padding:30px 38px 55px; max-width:1440px; width:100%; margin:0 auto; }
+.topbar { display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:27px; }
+.eyebrow { font-size:12px; color:var(--primary); font-weight:800; letter-spacing:.08em; margin-bottom:8px; }
+h1 { margin:0; font-size:28px; letter-spacing:-.04em; }
+.subtitle { margin:9px 0 0; color:var(--muted); font-size:14px; }
+.top-actions { display:flex; align-items:center; gap:10px; }
+.pill { border:1px solid var(--line); background:#fff; border-radius:999px; padding:10px 14px; color:#555b70; font-size:13px; }
+.primary, .secondary, .danger { border:0; border-radius:10px; padding:11px 15px; font-weight:750; }
+.primary { background:var(--primary); color:#fff; }
+.primary:hover { background:var(--primary-dark); }
+.secondary { background:var(--soft); color:var(--primary-dark); }
+.danger { background:var(--red); color:#bd4343; }
+.grid { display:grid; grid-template-columns:minmax(0, 1.55fr) minmax(290px, .85fr); gap:22px; align-items:start; }
+.panel { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:22px; box-shadow:var(--shadow); margin-bottom:20px; }
+.panel-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; }
+h2 { font-size:17px; margin:0; letter-spacing:-.02em; }
+h3 { font-size:15px; margin:0; }
+.muted { color:var(--muted); font-size:13px; }
+.stats { display:grid; grid-template-columns:repeat(3,1fr); gap:13px; margin-bottom:22px; }
+.stat { background:#fff; border:1px solid var(--line); padding:17px 18px; border-radius:15px; }
+.stat .label { font-size:12px; color:var(--muted); margin-bottom:9px; }
+.stat strong { font-size:25px; }
+.stat small { font-size:12px; color:var(--muted); margin-left:5px; }
+.filter-row { display:flex; gap:10px; margin-bottom:17px; }
+.filter-row input, .filter-row select { min-width:0; }
+input, select, textarea { border:1px solid #dedfeb; border-radius:10px; padding:11px 12px; background:#fff; color:var(--ink); outline:none; width:100%; }
+input:focus, select:focus, textarea:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(107,99,217,.12); }
+.cards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.meal-card { border:1px solid var(--line); border-radius:15px; padding:17px; display:flex; flex-direction:column; gap:12px; }
+.meal-top { display:flex; gap:11px; align-items:center; }
+.avatar { width:43px; height:43px; border-radius:14px; display:grid; place-items:center; background:#eeedff; color:#5b54c3; font-weight:800; flex-shrink:0; }
+.avatar.orange { background:#fff0df; color:#ad6a23; }
+.avatar.green { background:#e3f7ed; color:#23805a; }
+.avatar.pink { background:#ffeaf2; color:#b04b79; }
+.person { font-weight:800; font-size:14px; }
+.person-sub { color:var(--muted); font-size:12px; margin-top:4px; }
+.tag-row { display:flex; flex-wrap:wrap; gap:6px; }
+.tag { display:inline-block; border-radius:7px; padding:5px 8px; font-size:11px; background:#f3f4f8; color:#60657a; }
+.tag.purple { background:var(--soft); color:var(--primary-dark); }
+.meal-title { font-size:16px; font-weight:800; }
+.detail-list { display:grid; gap:8px; color:#60657a; font-size:12px; }
+.detail-list span { display:flex; gap:7px; align-items:center; }
+.card-bottom { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:auto; padding-top:4px; }
+.card-bottom .muted { font-size:11px; }
+.card-bottom button { white-space:nowrap; }
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:13px; }
+.field { display:grid; gap:7px; }
+.field label { font-size:12px; color:#60657a; font-weight:750; }
+.field.full { grid-column:1/-1; }
+textarea { min-height:75px; resize:vertical; }
+.form-actions { display:flex; justify-content:flex-end; margin-top:16px; gap:9px; }
+.tip { background:#f8f7ff; border-radius:12px; padding:13px 14px; font-size:12px; line-height:1.7; color:#656a80; }
+.list { display:grid; gap:12px; }
+.list-item { display:flex; align-items:center; gap:12px; border:1px solid var(--line); border-radius:12px; padding:12px; }
+.list-content { flex:1; min-width:0; }
+.list-content strong { display:block; font-size:13px; margin-bottom:5px; }
+.list-content p { margin:0; font-size:12px; color:var(--muted); }
+.list-item .secondary, .list-item .danger { padding:8px 10px; font-size:12px; }
+.empty { text-align:center; color:var(--muted); font-size:13px; padding:26px 10px; }
+.view { display:none; }
+.view.active { display:block; }
+.toast { position:fixed; right:25px; bottom:25px; max-width:360px; background:#25283a; color:#fff; padding:14px 18px; border-radius:12px; box-shadow:var(--shadow); opacity:0; transform:translateY(12px); pointer-events:none; transition:.25s; z-index:20; font-size:13px; }
+.toast.show { opacity:1; transform:translateY(0); }
+.modal-backdrop { position:fixed; inset:0; background:rgba(22,24,45,.35); display:none; place-items:center; padding:20px; z-index:15; }
+.modal-backdrop.show { display:grid; }
+.modal { width:min(510px,100%); background:#fff; border-radius:18px; padding:24px; box-shadow:0 20px 70px rgba(0,0,0,.2); }
+.modal-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:17px; }
+.close { border:0; background:#f1f2f7; width:32px; height:32px; border-radius:9px; font-size:18px; }
+.chat-box { background:#f7f7fb; border-radius:12px; padding:14px; height:200px; overflow:auto; margin:13px 0; display:flex; flex-direction:column; gap:10px; }
+.bubble { max-width:85%; background:#fff; border:1px solid var(--line); border-radius:12px 12px 12px 3px; padding:9px 11px; font-size:13px; align-self:flex-start; }
+.bubble.mine { background:var(--soft); border-color:transparent; border-radius:12px 12px 3px 12px; align-self:flex-end; }
+.chat-send { display:flex; gap:8px; }
+.chat-send input { flex:1; }
+.small-note { font-size:11px; color:var(--muted); line-height:1.6; }
+hr { border:0; border-top:1px solid var(--line); margin:17px 0; }
+@media (max-width:1050px) { .layout{grid-template-columns:205px 1fr;} main{padding:25px 22px;} .grid{grid-template-columns:1fr;} }
+@media (max-width:740px) { .layout{grid-template-columns:1fr;} .sidebar{padding:13px; border-right:0; border-bottom:1px solid var(--line);} .brand{margin:0 6px 12px;} .nav{display:flex; overflow:auto;} .nav button{white-space:nowrap; padding:10px 12px;} .side-note{display:none;} main{padding:20px 14px;} .topbar{align-items:flex-start; flex-direction:column;} .top-actions{width:100%; flex-wrap:wrap;} .stats{grid-template-columns:1fr 1fr;} .stat:last-child{grid-column:1/-1;} .cards{grid-template-columns:1fr;} .form-grid{grid-template-columns:1fr;} .field.full{grid-column:auto;} h1{font-size:24px;} }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-icon">🍚</div><span>밥친구</span></div>
+    <nav class="nav" aria-label="주 메뉴">
+      <button class="active" data-view="home">⌂　홈 대시보드</button>
+      <button data-view="find">☷　밥 친구 찾기</button>
+      <button data-view="create">＋　모임 등록하기</button>
+      <button data-view="meetings">▣　내 식사 약속</button>
+      <button data-view="chat">▤　채팅</button>
+      <button data-view="mypage">◎　마이페이지</button>
+    </nav>
+    <div class="side-note"><strong>혼밥보다 함께 한 끼</strong><br>공강 시간과 음식 취향이 맞는 대학생을 찾아 편하게 식사해요.<br><br>※ 데모 버전은 입력한 정보가 현재 브라우저에만 저장돼요.</div>
+  </aside>
+
+  <main>
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">YOUR CAMPUS LUNCH MATE</div>
+        <h1 id="pageTitle">오늘은 누구와 밥 먹을까요?</h1>
+        <p class="subtitle" id="pageSubtitle">공강 시간에 맞는 밥 친구를 찾아보세요.</p>
+      </div>
+      <div class="top-actions">
+        <span class="pill" id="campusPill">🏫 우리 학교</span>
+        <button class="primary" data-goto="create">＋ 식사 모임 만들기</button>
+      </div>
+    </header>
+
+    <section class="view active" id="view-home">
+      <div class="stats">
+        <div class="stat"><div class="label">오늘 참여 가능한 모임</div><strong id="statOpen">6</strong><small>개</small></div>
+        <div class="stat"><div class="label">내가 신청한 모임</div><strong id="statJoined">0</strong><small>개</small></div>
+        <div class="stat"><div class="label">이번 주 함께한 한 끼</div><strong id="statMeals">0</strong><small>회</small></div>
+      </div>
+      <div class="grid">
+        <div>
+          <section class="panel">
+            <div class="panel-head"><div><h2>지금 모집 중인 밥 친구</h2><div class="muted" style="margin-top:5px">시간과 취향이 맞는 모임을 골라보세요.</div></div><button class="secondary" data-goto="find">전체 보기</button></div>
+            <div class="cards" id="homeCards"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-head"><h2>밥친구 이용 팁</h2></div>
+            <div class="tip">• 첫 만남은 학교 안이나 사람이 많은 장소에서 해요.<br>• 식사 전에 시간과 장소를 채팅으로 다시 확인해요.<br>• 불편한 사용자는 언제든 신고하거나 차단할 수 있어요.</div>
+          </section>
+        </div>
+        <div>
+          <section class="panel">
+            <div class="panel-head"><h2>빠르게 모임 찾기</h2><span class="tag purple">맞춤 검색</span></div>
+            <div class="form-grid">
+              <div class="field"><label for="quickDate">날짜</label><input type="date" id="quickDate"></div>
+              <div class="field"><label for="quickTime">시간대</label><select id="quickTime"><option value="">전체</option><option>아침</option><option>점심</option><option>저녁</option></select></div>
+              <div class="field full"><label for="quickFood">먹고 싶은 음식</label><select id="quickFood"><option value="">상관없어요</option><option>한식</option><option>일식</option><option>중식</option><option>양식</option><option>분식</option><option>샐러드</option><option>기타</option></select></div>
+            </div>
+            <button class="primary" id="quickSearch" style="width:100%;margin-top:14px">조건에 맞는 모임 찾기</button>
+          </section>
+          <section class="panel">
+            <div class="panel-head"><h2>내 다음 식사 약속</h2><button class="secondary" data-goto="meetings">확인</button></div>
+            <div id="upcomingBox" class="empty">아직 신청한 식사 약속이 없어요.</div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-find">
+      <section class="panel">
+        <div class="panel-head"><div><h2>밥 친구 찾기</h2><div class="muted" style="margin-top:5px">검색 조건을 설정하면 모임 목록이 필터링돼요.</div></div><span class="tag purple" id="resultCount">모임 0개</span></div>
+        <div class="filter-row">
+          <input id="searchText" placeholder="학교, 장소, 음식, 모임 제목 검색" aria-label="검색어">
+          <select id="filterTime" aria-label="시간 필터"><option value="">모든 시간</option><option>아침</option><option>점심</option><option>저녁</option></select>
+          <select id="filterFood" aria-label="음식 필터"><option value="">모든 음식</option><option>한식</option><option>일식</option><option>중식</option><option>양식</option><option>분식</option><option>샐러드</option><option>기타</option></select>
+        </div>
+        <div class="cards" id="allCards"></div>
+      </section>
+    </section>
+
+    <section class="view" id="view-create">
+      <section class="panel">
+        <div class="panel-head"><div><h2>식사 모임 등록하기</h2><div class="muted" style="margin-top:5px">함께 먹고 싶은 한 끼의 조건을 알려주세요.</div></div><span class="tag purple">새 모임</span></div>
+        <form id="createForm">
+          <div class="form-grid">
+            <div class="field full"><label for="mealTitle">모임 제목 *</label><input id="mealTitle" maxlength="45" placeholder="예: 12시 공강! 학생회관에서 한식 먹어요" required></div>
+            <div class="field"><label for="mealDate">날짜 *</label><input id="mealDate" type="date" required></div>
+            <div class="field"><label for="mealTime">시간대 *</label><select id="mealTime" required><option value="">선택해 주세요</option><option>아침</option><option>점심</option><option>저녁</option></select></div>
+            <div class="field"><label for="mealClock">만날 시간 *</label><input id="mealClock" type="time" required></div>
+            <div class="field"><label for="mealFood">음식 종류 *</label><select id="mealFood" required><option value="">선택해 주세요</option><option>한식</option><option>일식</option><option>중식</option><option>양식</option><option>분식</option><option>샐러드</option><option>기타</option></select></div>
+            <div class="field"><label for="mealPlace">장소 *</label><input id="mealPlace" maxlength="60" placeholder="예: 학생회관 1층 / 정문 앞" required></div>
+            <div class="field"><label for="mealPeople">모집 인원 (본인 포함) *</label><select id="mealPeople" required><option value="2">2명</option><option value="3">3명</option><option value="4">4명</option><option value="5">5명</option><option value="6">6명</option></select></div>
+            <div class="field"><label for="mealBudget">1인 예산 *</label><select id="mealBudget" required><option value="10000">1만 원 이하</option><option value="15000">1만 5천 원 이하</option><option value="20000">2만 원 이하</option><option value="30000">3만 원 이하</option><option value="50000">상관없음 (5만 원 기준)</option></select></div>
+            <div class="field full"><label for="mealMemo">한마디 (선택)</label><textarea id="mealMemo" maxlength="180" placeholder="예: 조용히 먹어도 좋아요! 처음 보는 사람도 환영해요."></textarea></div>
+          </div>
+          <div class="form-actions"><button class="secondary" type="reset">초기화</button><button class="primary" type="submit">모임 등록하기</button></div>
+        </form>
+      </section>
+    </section>
+
+    <section class="view" id="view-meetings">
+      <section class="panel"><div class="panel-head"><div><h2>내 식사 약속</h2><div class="muted" style="margin-top:5px">참여 신청하거나 직접 만든 모임을 확인해요.</div></div></div><div id="myMeetings" class="list"></div></section>
+      <section class="panel"><div class="panel-head"><h2>내가 만든 모임 신청 관리</h2></div><div id="hostRequests" class="list"></div></section>
+    </section>
+
+    <section class="view" id="view-chat">
+      <section class="panel"><div class="panel-head"><div><h2>채팅</h2><div class="muted" style="margin-top:5px">참여 신청한 모임에서 약속을 조율해요.</div></div></div><div id="chatList" class="list"></div></section>
+    </section>
+
+    <section class="view" id="view-mypage">
+      <section class="panel">
+        <div class="panel-head"><div><h2>내 프로필</h2><div class="muted" style="margin-top:5px">프로필 정보는 이 브라우저에 저장돼요.</div></div></div>
+        <form id="profileForm">
+          <div class="form-grid">
+            <div class="field"><label for="profileName">닉네임 *</label><input id="profileName" maxlength="20" required placeholder="예: 아련"></div>
+            <div class="field"><label for="profileSchool">학교 *</label><input id="profileSchool" maxlength="40" required placeholder="예: 신한대학교"></div>
+            <div class="field"><label for="profileDept">학과</label><input id="profileDept" maxlength="40" placeholder="예: 패션디자인학과"></div>
+            <div class="field"><label for="profileTalk">대화 성향</label><select id="profileTalk"><option>편하게 대화해요</option><option>조용히 식사해요</option><option>새로운 친구를 사귀고 싶어요</option><option>식사에 집중하고 싶어요</option></select></div>
+            <div class="field"><label for="profileFood">선호 음식</label><select id="profileFood"><option>상관없어요</option><option>한식</option><option>일식</option><option>중식</option><option>양식</option><option>분식</option><option>샐러드</option><option>기타</option></select></div>
+            <div class="field"><label for="profileBudget">선호 예산</label><select id="profileBudget"><option>1만 원 이하</option><option>1만 5천 원 이하</option><option>2만 원 이하</option><option>3만 원 이하</option><option>상관없어요</option></select></div>
+            <div class="field full"><label for="profileInterests">관심사</label><input id="profileInterests" maxlength="100" placeholder="예: 패션, 음악, 영화 (쉼표로 구분)"></div>
+          </div>
+          <div class="form-actions"><button class="primary" type="submit">프로필 저장</button></div>
+        </form>
+        <hr>
+        <div class="panel-head"><h2>차단한 사용자</h2></div><div id="blockedList" class="list"></div>
+        <p class="small-note">이 프로토타입에는 실제 학교 인증, 서버 기반 계정, 위치 추적, 실시간 알림 기능이 연결되어 있지 않아요. 학교 인증은 실제 서비스 제작 시 별도로 구현해야 해요.</p>
+      </section>
+    </section>
+  </main>
+</div>
+
+<div class="modal-backdrop" id="chatModal" role="dialog" aria-modal="true" aria-labelledby="chatTitle">
+  <div class="modal"><div class="modal-head"><h2 id="chatTitle">모임 채팅</h2><button class="close" id="closeChat" aria-label="닫기">×</button></div><div class="small-note">데모 채팅이에요. 입력한 메시지는 이 브라우저에 저장돼요.</div><div class="chat-box" id="chatMessages"></div><form class="chat-send" id="chatForm"><input id="chatInput" maxlength="300" placeholder="메시지를 입력하세요" required><button class="primary" type="submit">전송</button></form></div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  const STORAGE_KEY = 'babchingu_demo_v1';
+  const $ = id => document.getElementById(id);
+  const today = new Date();
+  const localDate = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const plusDays = n => { const d = new Date(); d.setDate(d.getDate()+n); return localDate(d); };
+  const seed = {
+    profile: {name:'아련', school:'신한대학교', dept:'', talk:'편하게 대화해요', food:'상관없어요', budget:'상관없어요', interests:''},
+    meals: [
+      {id:'demo1', title:'12시 공강! 학생회관에서 한식 먹어요', date:plusDays(0), time:'점심', clock:'12:00', food:'한식', place:'학생회관 1층', people:3, budget:10000, memo:'처음 보는 사람도 환영해요.', host:'민지', school:'신한대학교', dept:'미디어언론학과', joined:1, requests:[], status:'open', demo:true},
+      {id:'demo2', title:'수업 전에 가볍게 돈가스!', date:plusDays(0), time:'점심', clock:'12:30', food:'일식', place:'학교 정문 앞', people:4, budget:15000, memo:'맛집 같이 찾아봐요.', host:'도윤', school:'신한대학교', dept:'컴퓨터공학과', joined:2, requests:[], status:'open', demo:true},
+      {id:'demo3', title:'저녁에 마라탕 같이 먹을 사람', date:plusDays(1), time:'저녁', clock:'18:00', food:'중식', place:'후문 먹자골목', people:3, budget:15000, memo:'매운맛 단계는 각자 맞춰요.', host:'서연', school:'신한대학교', dept:'간호학과', joined:1, requests:[], status:'open', demo:true},
+      {id:'demo4', title:'샐러드 먹고 과제하러 가요', date:plusDays(1), time:'점심', clock:'13:00', food:'샐러드', place:'도서관 옆 카페', people:2, budget:10000, memo:'밥 먹고 도서관 갈 예정이에요.', host:'지우', school:'신한대학교', dept:'디자인학과', joined:1, requests:[], status:'open', demo:true},
+      {id:'demo5', title:'수업 끝나고 분식 한 끼', date:plusDays(2), time:'저녁', clock:'17:30', food:'분식', place:'정문 분식집', people:4, budget:10000, memo:'떡볶이 좋아하는 분!', host:'현우', school:'신한대학교', dept:'경영학과', joined:2, requests:[], status:'open', demo:true},
+      {id:'demo6', title:'점심에 파스타 먹어요', date:plusDays(2), time:'점심', clock:'12:10', food:'양식', place:'학교 근처 파스타집', people:3, budget:20000, memo:'새로운 메뉴 도전해요.', host:'수빈', school:'신한대학교', dept:'행정학과', joined:1, requests:[], status:'open', demo:true}
+    ],
+    joined: [], blocked: [], chats: {}, mealsDone: 0
+  };
+  let state;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    state = raw ? {...seed, ...JSON.parse(raw)} : seed;
+    if (!Array.isArray(state.meals) || !state.profile) state = seed;
+  } catch(e) { state = seed; }
+  let currentChatId = null;
+  const save = () => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {} };
+  const escapeHTML = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const money = n => Number(n) >= 50000 ? '상관없음' : Number(n).toLocaleString('ko-KR')+'원 이하';
+  const dateLabel = d => { if(!d) return '날짜 미정'; const [y,m,day]=d.split('-'); return `${Number(m)}월 ${Number(day)}일`; };
+  const isBlocked = name => state.blocked.includes(name);
+  function toast(msg) {
+    $('toast').textContent = msg; $('toast').classList.add('show');
+    clearTimeout(toast.timer); toast.timer = setTimeout(()=>$('toast').classList.remove('show'), 2800);
+  }
+  const joinedFor = id => state.joined.some(x=>x.mealId===id && x.status!=='cancelled');
+  function mealCard(m) {
+    if(isBlocked(m.host)) return '';
+    const joined = joinedFor(m.id);
+    const full = m.joined >= m.people;
+    const avatarColors = {'민지':'','도윤':'orange','서연':'green','지우':'pink'};
+    const color = avatarColors[m.host] || '';
+    const initial = escapeHTML((m.host || '밥').slice(0,1));
+    return `<article class="meal-card">
+      <div class="meal-top"><div class="avatar ${color}">${initial}</div><div><div class="person">${escapeHTML(m.host)} <span class="tag">${escapeHTML(m.school || state.profile.school || '대학생')}</span></div><div class="person-sub">${escapeHTML(m.dept || '학과 정보 없음')}</div></div></div>
+      <div class="tag-row"><span class="tag purple">${escapeHTML(m.food)}</span><span class="tag">${escapeHTML(m.time)}</span><span class="tag">${dateLabel(m.date)}</span></div>
+      <div class="meal-title">${escapeHTML(m.title)}</div>
+      <div class="detail-list"><span>◷ ${escapeHTML(m.clock)} · ${escapeHTML(m.place)}</span><span>₩ 1인 ${money(m.budget)}</span><span>♧ ${m.joined}/${m.people}명 모집 인원 기준</span>${m.memo?`<span>✎ ${escapeHTML(m.memo)}</span>`:''}</div>
+      <div class="card-bottom"><span class="muted">${m.status==='closed'?'모집 마감':joined?'신청 완료':full?'인원 마감':'참여 신청 가능'}</span>
+      ${m.host===state.profile.name ? '<button class="secondary" disabled>내 모임</button>' : joined ? '<button class="secondary" disabled>신청 완료</button>' : `<button class="primary" data-join="${escapeHTML(m.id)}" ${full||m.status==='closed'?'disabled':''}>참여 신청</button>`}</div>
+    </article>`;
+  }
+  function renderCards(target, meals) {
+    const visible = meals.filter(m=>!isBlocked(m.host));
+    $(target).innerHTML = visible.length ? visible.map(mealCard).join('') : '<div class="empty" style="grid-column:1/-1">조건에 맞는 모임이 없어요. 검색 조건을 바꾸거나 새 모임을 등록해 보세요.</div>';
+  }
+  function refresh() {
+    const open = state.meals.filter(m=>m.status==='open' && m.date >= localDate(new Date()) && !isBlocked(m.host));
+    $('statOpen').textContent = open.length;
+    $('statJoined').textContent = state.joined.filter(x=>x.status!=='cancelled').length;
+    $('statMeals').textContent = state.mealsDone || 0;
+    $('campusPill').textContent = '🏫 ' + (state.profile.school || '우리 학교');
+    renderCards('homeCards', open.slice(0,4));
+    filterMeals();
+    renderMyMeetings();
+    renderHostRequests();
+    renderUpcoming();
+    renderChatList();
+    renderBlocked();
+  }
+  function filterMeals() {
+    const q = ($('searchText')?.value || '').trim().toLowerCase();
+    const t = $('filterTime')?.value || '';
+    const f = $('filterFood')?.value || '';
+    const meals = state.meals.filter(m=>m.status==='open' && m.date>=localDate(new Date()) && !isBlocked(m.host)
+      && (!q || [m.title,m.place,m.host,m.school,m.food,m.dept].join(' ').toLowerCase().includes(q))
+      && (!t || m.time===t) && (!f || m.food===f));
+    renderCards('allCards', meals);
+    $('resultCount').textContent = `모임 ${meals.filter(m=>m.host!==state.profile.name).length}개`;
+  }
+  function go(view) {
+    document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active', v.id==='view-'+view));
+    document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
+    const info = {
+      home:['오늘은 누구와 밥 먹을까요?','공강 시간에 맞는 밥 친구를 찾아보세요.'],
+      find:['밥 친구 찾기','시간, 음식, 장소 조건으로 원하는 모임을 찾아요.'],
+      create:['식사 모임 등록하기','같이 먹고 싶은 한 끼를 등록해 보세요.'],
+      meetings:['내 식사 약속','신청한 모임과 직접 만든 모임을 관리해요.'],
+      chat:['채팅','식사 약속을 정하고 서로 이야기해요.'],
+      mypage:['마이페이지','프로필과 이용 설정을 관리해요.']
+    }[view];
+    $('pageTitle').textContent=info[0]; $('pageSubtitle').textContent=info[1];
+    if(view==='find') filterMeals();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.view)));
+  document.querySelectorAll('[data-goto]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.goto)));
+  document.addEventListener('click', e=>{
+    const joinBtn=e.target.closest('[data-join]');
+    if(joinBtn) requestJoin(joinBtn.dataset.join);
+    const cancelBtn=e.target.closest('[data-cancel]');
+    if(cancelBtn) cancelJoin(cancelBtn.dataset.cancel);
+    const acceptBtn=e.target.closest('[data-accept]');
+    if(acceptBtn) handleRequest(acceptBtn.dataset.meal,acceptBtn.dataset.accept,true);
+    const rejectBtn=e.target.closest('[data-reject]');
+    if(rejectBtn) handleRequest(rejectBtn.dataset.meal,rejectBtn.dataset.reject,false);
+    const chatBtn=e.target.closest('[data-chat]');
+    if(chatBtn) openChat(chatBtn.dataset.chat);
+    const closeBtn=e.target.closest('[data-close-meal]');
+    if(closeBtn) closeMeal(closeBtn.dataset.closeMeal);
+    const reportBtn=e.target.closest('[data-report]');
+    if(reportBtn) reportUser(reportBtn.dataset.report);
+    const unblockBtn=e.target.closest('[data-unblock]');
+    if(unblockBtn) unblock(unblockBtn.dataset.unblock);
+    const doneBtn=e.target.closest('[data-done]');
+    if(doneBtn) { state.mealsDone=(state.mealsDone||0)+1; save(); refresh(); toast('함께한 한 끼로 기록했어요.'); }
+  });
+  function requestJoin(id) {
+    const m=state.meals.find(x=>x.id===id); if(!m) return;
+    if(m.host===state.profile.name) return toast('내가 만든 모임에는 신청할 수 없어요.');
+    if(joinedFor(id)) return toast('이미 신청한 모임이에요.');
+    if(m.status!=='open'||m.joined>=m.people) return toast('이 모임은 모집이 마감됐어요.');
+    if(isBlocked(m.host)) return toast('차단한 사용자의 모임에는 신청할 수 없어요.');
+    state.joined.push({mealId:id,status:'pending',created:Date.now()});
+    m.requests=m.requests||[]; m.requests.push({name:state.profile.name,school:state.profile.school,status:'pending'});
+    save(); refresh(); toast('참여 신청을 보냈어요. 개설자의 승인을 기다려 주세요.');
+  }
+  function cancelJoin(id) {
+    const j=state.joined.find(x=>x.mealId===id && x.status!=='cancelled');
+    if(!j) return;
+    j.status='cancelled';
+    const m=state.meals.find(x=>x.id===id);
+    if(m) { m.requests=(m.requests||[]).filter(r=>!(r.name===state.profile.name && r.status==='pending')); }
+    save(); refresh(); toast('참여 신청을 취소했어요.');
+  }
+  function handleRequest(mealId,name,accept) {
+    const m=state.meals.find(x=>x.id===mealId); if(!m) return;
+    const r=(m.requests||[]).find(x=>x.name===name); if(!r) return;
+    if(accept && m.joined>=m.people) return toast('모집 인원이 가득 찼어요.');
+    r.status=accept?'accepted':'rejected';
+    const j=state.joined.find(x=>x.mealId===mealId && x.status==='pending' && name===state.profile.name);
+    if(accept) { m.joined++; if(m.joined>=m.people) m.status='closed'; if(j) j.status='accepted'; }
+    else if(j) j.status='rejected';
+    save(); refresh(); toast(accept?'참여 신청을 승인했어요.':'참여 신청을 거절했어요.');
+  }
+  $('createForm').addEventListener('submit', e=>{
+    e.preventDefault();
+    const date=$('mealDate').value, clock=$('mealClock').value, title=$('mealTitle').value.trim(), place=$('mealPlace').value.trim();
+    if(!title || !place) return toast('모임 제목과 장소를 입력해 주세요.');
+    if(date < localDate(new Date())) return toast('오늘 이후의 날짜를 선택해 주세요.');
+    if(date===localDate(new Date()) && clock < `${String(new Date().getHours()).padStart(2,'0')}:${String(new Date().getMinutes()).padStart(2,'0')}`) return toast('이미 지난 시간은 선택할 수 없어요.');
+    if(!$('mealTime').value || !$('mealFood').value) return toast('필수 항목을 모두 선택해 주세요.');
+    const m={id:'m'+Date.now(),title,date,time:$('mealTime').value,clock,food:$('mealFood').value,place,people:Number($('mealPeople').value),budget:Number($('mealBudget').value),memo:$('mealMemo').value.trim(),host:state.profile.name||'나',school:state.profile.school||'학교 미설정',dept:state.profile.dept||'',joined:1,requests:[],status:'open',demo:false};
+    state.meals.unshift(m); save(); e.target.reset(); $('mealDate').min=localDate(new Date()); $('mealDate').value=plusDays(0);
+    refresh(); go('find'); toast('식사 모임을 등록했어요.');
+  });
+  function renderMyMeetings() {
+    const joined = state.joined.filter(j=>j.status!=='cancelled').map(j=>({j,m:state.meals.find(m=>m.id===j.mealId)})).filter(x=>x.m);
+    const hosted = state.meals.filter(m=>m.host===state.profile.name && !m.demo);
+    const items = [...joined.map(({j,m})=>({m,status:j.status,joined:true})),...hosted.map(m=>({m,status:'host',joined:false}))];
+    $('myMeetings').innerHTML=items.length?items.map(({m,status,joined})=>`<div class="list-item"><div class="avatar">${escapeHTML(m.food.slice(0,1))}</div><div class="list-content"><strong>${escapeHTML(m.title)}</strong><p>${dateLabel(m.date)} · ${escapeHTML(m.clock)} · ${escapeHTML(m.place)}</p><p>상태: ${status==='pending'?'승인 대기':status==='accepted'?'참여 승인':status==='rejected'?'신청 거절':status==='host'?'내가 만든 모임':'확인 필요'}</p></div>${joined?`<button class="secondary" data-chat="${escapeHTML(m.id)}">채팅</button><button class="danger" data-cancel="${escapeHTML(m.id)}">취소</button>`:`<button class="secondary" data-close-meal="${escapeHTML(m.id)}">${m.status==='closed'?'마감됨':'모집 마감'}</button>`}</div>`).join(''):'<div class="empty">아직 식사 약속이 없어요. 밥 친구를 찾아 신청해 보세요.</div>';
+  }
+  function renderHostRequests() {
+    const hosted=state.meals.filter(m=>m.host===state.profile.name && !m.demo);
+    const requests=hosted.flatMap(m=>(m.requests||[]).filter(r=>r.status==='pending').map(r=>({m,r})));
+    $('hostRequests').innerHTML=requests.length?requests.map(({m,r})=>`<div class="list-item"><div class="avatar">${escapeHTML(r.name.slice(0,1))}</div><div class="list-content"><strong>${escapeHTML(r.name)} 님의 참여 신청</strong><p>${escapeHTML(m.title)} · ${escapeHTML(r.school||'학교 미입력')}</p></div><button class="primary" data-accept="${escapeHTML(r.name)}" data-meal="${escapeHTML(m.id)}">승인</button><button class="danger" data-reject="${escapeHTML(r.name)}" data-meal="${escapeHTML(m.id)}">거절</button></div>`).join(''):'<div class="empty">아직 새로운 참여 신청이 없어요.</div>';
+  }
+  function renderUpcoming() {
+    const upcoming=state.joined.filter(j=>j.status==='accepted').map(j=>state.meals.find(m=>m.id===j.mealId)).filter(m=>m && m.date>=localDate(new Date())).sort((a,b)=>(a.date+a.clock).localeCompare(b.date+b.clock))[0];
+    $('upcomingBox').innerHTML=upcoming?`<div class="list-item"><div class="avatar">🍽</div><div class="list-content"><strong>${escapeHTML(upcoming.title)}</strong><p>${dateLabel(upcoming.date)} · ${escapeHTML(upcoming.clock)}</p><p>${escapeHTML(upcoming.place)}</p></div></div>`:'<div class="empty">승인된 식사 약속이 아직 없어요.</div>';
+  }
+  function renderChatList() {
+    const ids=[...new Set(state.joined.filter(j=>j.status==='accepted').map(j=>j.mealId))];
+    $('chatList').innerHTML=ids.length?ids.map(id=>{const m=state.meals.find(x=>x.id===id);return m?`<div class="list-item"><div class="avatar">💬</div><div class="list-content"><strong>${escapeHTML(m.title)}</strong><p>${dateLabel(m.date)} · ${escapeHTML(m.place)}</p></div><button class="primary" data-chat="${escapeHTML(id)}">채팅 열기</button></div>`:''}).join(''):'<div class="empty">참여 승인이 완료된 모임이 있으면 여기에서 채팅할 수 있어요.</div>';
+  }
+  function openChat(id) {
+    const m=state.meals.find(x=>x.id===id); if(!m) return;
+    currentChatId=id; $('chatTitle').textContent=m.title;
+    if(!state.chats[id]) state.chats[id]=[{mine:false,text:'안녕하세요! 식사 시간과 장소를 다시 확인해요.'}];
+    renderChatMessages(); $('chatModal').classList.add('show'); $('chatInput').focus();
+  }
+  function renderChatMessages() {
+    const messages=state.chats[currentChatId]||[];
+    $('chatMessages').innerHTML=messages.map(msg=>`<div class="bubble ${msg.mine?'mine':''}">${escapeHTML(msg.text)}</div>`).join('');
+    $('chatMessages').scrollTop=$('chatMessages').scrollHeight;
+  }
+  $('chatForm').addEventListener('submit',e=>{
+    e.preventDefault(); const text=$('chatInput').value.trim(); if(!text) return toast('메시지를 입력해 주세요.');
+    if(!currentChatId) return;
+    state.chats[currentChatId]=state.chats[currentChatId]||[];
+    state.chats[currentChatId].push({mine:true,text}); save(); $('chatInput').value=''; renderChatMessages();
+  });
+  $('closeChat').addEventListener('click',()=>$('chatModal').classList.remove('show'));
+  $('chatModal').addEventListener('click',e=>{if(e.target===$('chatModal')) $('chatModal').classList.remove('show');});
+  function closeMeal(id) {
+    const m=state.meals.find(x=>x.id===id); if(!m) return;
+    m.status=m.status==='closed'?'open':'closed'; save(); refresh(); toast(m.status==='closed'?'모집을 마감했어요.':'모집을 다시 열었어요.');
+  }
+  function reportUser(name) {
+    if(!name || name===state.profile.name) return toast('자기 자신은 신고하거나 차단할 수 없어요.');
+    if(!confirm(`${name} 사용자를 차단할까요? 데모에서는 차단과 함께 신고 기록도 남겨요.`)) return;
+    if(!state.blocked.includes(name)) state.blocked.push(name);
+    state.reports=state.reports||[]; state.reports.push({name,at:Date.now()});
+    save(); refresh(); toast(`${name} 사용자를 차단했어요.`);
+  }
+  function unblock(name) { state.blocked=state.blocked.filter(x=>x!==name); save(); refresh(); toast(`${name} 사용자의 차단을 해제했어요.`); }
+  function renderBlocked() {
+    $('blockedList').innerHTML=state.blocked.length?state.blocked.map(name=>`<div class="list-item"><div class="avatar">!</div><div class="list-content"><strong>${escapeHTML(name)}</strong><p>차단된 사용자</p></div><button class="secondary" data-unblock="${escapeHTML(name)}">차단 해제</button></div>`).join(''):'<div class="empty">차단한 사용자가 없어요.</div>';
+  }
+  $('profileForm').addEventListener('submit',e=>{
+    e.preventDefault();
+    const name=$('profileName').value.trim(), school=$('profileSchool').value.trim();
+    if(!name||!school) return toast('닉네임과 학교를 입력해 주세요.');
+    const oldName=state.profile.name;
+    state.profile={name,school,dept:$('profileDept').value.trim(),talk:$('profileTalk').value,food:$('profileFood').value,budget:$('profileBudget').value,interests:$('profileInterests').value.trim()};
+    // Update hosted meetings so profile edits remain consistent.
+    state.meals.forEach(m=>{if(m.host===oldName && !m.demo){m.host=name;m.school=school;m.dept=state.profile.dept;}});
+    save(); refresh(); toast('프로필을 저장했어요.');
+  });
+  ['searchText','filterTime','filterFood'].forEach(id=>$(id).addEventListener('input',filterMeals));
+  $('quickSearch').addEventListener('click',()=>{
+    const date=$('quickDate').value, time=$('quickTime').value, food=$('quickFood').value;
+    $('filterTime').value=time; $('filterFood').value=food; $('searchText').value='';
+    go('find');
+    const meals=state.meals.filter(m=>m.status==='open'&&m.date>=localDate(new Date())&&(!date||m.date===date)&&(!time||m.time===time)&&(!food||m.food===food)&&!isBlocked(m.host));
+    renderCards('allCards',meals); $('resultCount').textContent=`모임 ${meals.length}개`;
+    toast(`${meals.length}개의 모임을 찾았어요.`);
+  });
+  $('profileName').value=state.profile.name||'';
+  $('profileSchool').value=state.profile.school||'';
+  $('profileDept').value=state.profile.dept||'';
+  $('profileTalk').value=state.profile.talk||'편하게 대화해요';
+  $('profileFood').value=state.profile.food||'상관없어요';
+  $('profileBudget').value=state.profile.budget||'상관없어요';
+  $('profileInterests').value=state.profile.interests||'';
+  $('mealDate').min=localDate(new Date()); $('mealDate').value=plusDays(0);
+  $('quickDate').min=localDate(new Date());
+  // Demo seed dates are generated once; refresh them if a saved demo dataset crossed a day boundary.
+  if(state.meals.some(m=>m.demo) && state.meals.filter(m=>m.demo).every(m=>m.date<localDate(new Date()))) {
+    state.meals.filter(m=>m.demo).forEach((m,i)=>m.date=plusDays(i<2?0:i<4?1:2));
+  }
+  save(); refresh();
+})();
+</script>
+</body>
+</html>
